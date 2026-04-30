@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">Учні</h1>
+
+    <div class="bg-white rounded-2xl shadow p-6">
+        <div class="flex justify-between mb-6">
+            <input type="text" id="search" placeholder="Пошук учня..." 
+                   class="border rounded-lg px-4 py-2 w-80 focus:outline-none">
+            <button class="bg-blue-600 text-white px-5 py-2 rounded-lg">+ Додати учня</button>
+        </div>
+
+        <table class="w-full">
+            <thead>
+                <tr class="border-b text-gray-600">
+                    <th class="py-3 text-left">Ім'я</th>
+                    <th class="py-3 text-left">Група</th>
+                    <th class="py-3 text-left">Прогрес</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="py-4 font-medium">{{ student.name }}</td>
+                    <td class="text-gray-600">{{ student.group or '—' }}</td>
+                    <td>
+                        <div class="w-24 bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full w-3/4"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

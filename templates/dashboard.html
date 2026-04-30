@@ -1,54 +1,60 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>ChessFM</title>
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">Дашборд</h1>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-    <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.css"/>
-
-</head>
-
-<body>
-
-<div class="app">
-
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h2>♟️ ChessFM</h2>
-
-        <a href="/dashboard" class="active">Board</a>
-        <a href="/settings">Settings</a>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div class="bg-white p-6 rounded-2xl shadow">
+            <p class="text-gray-500">Всього учнів</p>
+            <p class="text-4xl font-bold text-blue-600 mt-2">{{ students_count }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow">
+            <p class="text-gray-500">Активні уроки сьогодні</p>
+            <p class="text-4xl font-bold text-green-600 mt-2">3</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow">
+            <p class="text-gray-500">Групи</p>
+            <p class="text-4xl font-bold text-purple-600 mt-2">8</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow">
+            <p class="text-gray-500">Тренери</p>
+            <p class="text-4xl font-bold text-orange-600 mt-2">4</p>
+        </div>
     </div>
 
-    <!-- Main -->
-    <div class="main">
-
-        <div class="header">
-            <h1>Dashboard</h1>
+    <!-- Lessons -->
+    <div class="bg-white rounded-2xl shadow p-6">
+        <div class="flex justify-between mb-6">
+            <h2 class="text-xl font-semibold">Ближчі уроки</h2>
+            <a href="{{ url_for('lessons') }}" class="text-blue-600 hover:underline">Всі уроки →</a>
         </div>
 
-        <div class="content">
-
-            <div class="board-card">
-                <div id="board"></div>
+        <div class="space-y-4">
+            {% for lesson in lessons %}
+            <div class="flex items-center justify-between border-b pb-4">
+                <div>
+                    <p class="font-medium">{{ lesson.title }}</p>
+                    <p class="text-sm text-gray-500">{{ lesson.group_name }} • {{ lesson.date.strftime('%d.%m %H:%M') }}</p>
+                </div>
+                <button onclick="startLesson({{ lesson.id }})"
+                        class="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium">
+                    Почати урок
+                </button>
             </div>
-
-            <div class="info-card">
-                <h3>Game Info</h3>
-                <p>Start playing and moves will appear here.</p>
-            </div>
-
+            {% endfor %}
         </div>
-
     </div>
-
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.js"></script>
-<script src="{{ url_for('static', filename='app.js') }}"></script>
-
-</body>
-</html>
+<script>
+function startLesson(id) {
+    fetch(`/api/start_lesson/${id}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        alert(data.message || "Урок розпочато!");
+        location.reload();
+    });
+}
+</script>
+{% endblock %}
