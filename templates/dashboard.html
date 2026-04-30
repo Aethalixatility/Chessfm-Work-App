@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
+    <title>ChessFM</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-    <!-- Chessboard.js -->
     <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.css"/>
 
@@ -13,20 +12,40 @@
 
 <body>
 
-<div class="navbar">
-    <a href="/dashboard">Board</a>
-    <a href="/settings">Settings</a>
+<div class="app">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>♟️ ChessFM</h2>
+
+        <a href="/dashboard" class="active">Board</a>
+        <a href="/settings">Settings</a>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+        <div class="header">
+            <h1>Dashboard</h1>
+        </div>
+
+        <div class="content">
+
+            <div class="board-card">
+                <div id="board"></div>
+            </div>
+
+            <div class="info-card">
+                <h3>Game Info</h3>
+                <p>Start playing and moves will appear here.</p>
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
-<div class="container">
-
-    <h2>Chess Board</h2>
-
-    <div id="board" style="width: 400px"></div>
-
-</div>
-
-<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.js"></script>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
