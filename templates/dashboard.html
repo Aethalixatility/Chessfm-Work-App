@@ -1,45 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chess Dashboard</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Dashboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Chessboard.js -->
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.css"/>
+
 </head>
+
 <body>
 
-<h1>Chess School Dashboard</h1>
-
-<div class="filters">
-    <input type="date">
-    <select><option>All Products</option></select>
-    <select><option>All Teachers</option></select>
-    <button>Refresh</button>
+<div class="navbar">
+    <a href="/dashboard">Board</a>
+    <a href="/settings">Settings</a>
 </div>
 
-<div class="main">
+<div class="container">
 
-    <div class="left">
-        <div class="card">
-            <h2>Lessons Overview</h2>
-            <p>Total: {{ data.total_lessons }}</p>
-            <p>Completed: {{ data.completed }}</p>
-            <p>Cancelled: {{ data.cancelled }}</p>
-        </div>
+    <h2>Chess Board</h2>
 
-        <div class="card">
-            <h2>Simple Chart</h2>
-            <div class="bar completed"></div>
-            <div class="bar cancelled"></div>
-        </div>
-    </div>
-
-    <div class="right">
-        <h2>Alerts</h2>
-        {% for alert in data.alerts %}
-            <div class="alert">{{ alert }}</div>
-        {% endfor %}
-    </div>
+    <div id="board" style="width: 400px"></div>
 
 </div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.js"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
 
 </body>
 </html>

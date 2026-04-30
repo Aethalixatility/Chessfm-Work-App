@@ -1,59 +1,53 @@
 body {
+    margin: 0;
     font-family: Arial;
-    margin: 20px;
-    background: #f5f5f5;
+    background: #0f172a;
+    color: white;
 }
 
-.filters {
-    margin-bottom: 20px;
-}
-
-.filters input,
-.filters select,
-.filters button {
-    padding: 8px;
-    margin-right: 10px;
-}
-
-.main {
+/* Center */
+.center {
     display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
-.left {
-    width: 70%;
+/* Navbar */
+.navbar {
+    background: #020617;
+    padding: 15px;
 }
 
-.right {
-    width: 30%;
-    padding-left: 20px;
+.navbar a {
+    color: white;
+    margin-right: 20px;
+    text-decoration: none;
 }
 
-.card {
-    background: white;
+/* Layout */
+.container {
+    padding: 30px;
+}
+
+/* Glass card */
+.glass {
+    background: rgba(255,255,255,0.05);
     padding: 20px;
-    margin-bottom: 20px;
     border-radius: 10px;
 }
 
-.alert {
-    background: #ffe0e0;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 6px;
+/* Button */
+.btn {
+    padding: 10px 20px;
+    background: #3b82f6;
+    border: none;
+    color: white;
+    cursor: pointer;
 }
 
-.bar {
-    height: 20px;
-    margin-top: 10px;
-    border-radius: 5px;
-}
-
-.completed {
-    width: 70%;
-    background: green;
-}
-
-.cancelled {
-    width: 30%;
-    background: red;
+/* Inputs */
+input, select {
+    padding: 8px;
+    width: 100%;
 }
