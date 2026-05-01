@@ -63,14 +63,24 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        
+        if not username or not password:
+            flash("Будь ласка, заповніть усі поля", "error")
+            return render_template('register.html')
+        
         if User.query.filter_by(username=username).first():
-            flash("Ім'я користувача вже зайняте")
+            flash("Ім'я користувача вже зайняте", "error")
         else:
-            user = User(username=username, password=generate_password_hash(password))
-            db.session.add(user)
-            db.session.commit()
-            flash("Реєстрація успішна! Тепер увійдіть.")
-            return redirect(url_for('login'))
+            try:
+                user = User(username=username, password=generate_password_hash(password))
+                db.session.add(user)
+                db.session.commit()
+                flash("Реєстрація успішна! Тепер ви можете увійти.", "success")
+                return redirect(url_for('login'))
+            except Exception as e:
+                db.session.rollback()
+                flash("Помилка при реєстрації. Спробуйте ще раз.", "error")
+    
     return render_template('register.html')
 
 @app.route('/dashboard')
