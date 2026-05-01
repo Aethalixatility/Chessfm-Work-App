@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'super-secret-key-for-chess-school'
+app.config['SECRET_KEY'] = 'super-secret-key-chess-school-2026'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///school.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -19,21 +19,21 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.String(20), default='trainer')  # admin or trainer
+    role = db.Column(db.String(20), default='trainer')
 
 class Lesson(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
     group_name = db.Column(db.String(100))
     date = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(20), default='planned')  # planned, started, finished
+    status = db.Column(db.String(20), default='planned')   # planned, started, finished
 
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     group = db.Column(db.String(100))
 
-# Create DB
+# ===================== INIT DB =====================
 with app.app_context():
     db.create_all()
 
@@ -58,18 +58,33 @@ def login():
         flash('Невірний логін або пароль')
     return render_template('login.html')
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if User.query.filter_by(username=username).first():
+            flash("Ім'я користувача вже зайняте")
+        else:
+            user = User(username=username, password=generate_password_hash(password))
+            db.session.add(user)
+            db.session.commit()
+            flash("Реєстрація успішна! Тепер увійдіть.")
+            return redirect(url_for('login'))
+    return render_template('register.html')
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    lessons = Lesson.query.all()
+    lessons = Lesson.query.order_by(Lesson.date.desc()).limit(6).all()
     students_count = Student.query.count()
     return render_template('dashboard.html', lessons=lessons, students_count=students_count)
 
 @app.route('/lessons')
 @login_required
 def lessons():
-    lessons = Lesson.query.all()
-    return render_template('lessons.html', lessons=lessons)
+    lessons_list = Lesson.query.all()
+    return render_template('lessons.html', lessons=lessons_list)
 
 @app.route('/api/start_lesson/<int:lesson_id>', methods=['POST'])
 @login_required
@@ -78,8 +93,8 @@ def start_lesson(lesson_id):
     if lesson:
         lesson.status = 'started'
         db.session.commit()
-        return jsonify({"success": True, "message": f"Урок '{lesson.title}' розпочато! Повідомлення надіслано."})
-    return jsonify({"success": False})
+        return jsonify({"success": True, "message": f"Урок '{lesson.title}' успішно розпочато!"})
+    return jsonify({"success": False, "message": "Урок не знайдено"})
 
 @app.route('/calendar')
 @login_required
@@ -108,5 +123,6 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+# ===================== RUN =====================
 if __name__ == '__main__':
     app.run(debug=True)
