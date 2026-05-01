@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,8 +6,8 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'super-secret-key-chess-school-2026'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///school.db'
+app.config['SECRET_KEY'] = 'chessfm-super-secret-key-2026'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chessfm.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -19,27 +19,37 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.String(20), default='trainer')
+    role = db.Column(db.String(20), default='trainer')   # trainer or admin
 
 class Lesson(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
     group_name = db.Column(db.String(100))
     date = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(20), default='planned')   # planned, started, finished
+    status = db.Column(db.String(20), default='planned')
 
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     group = db.Column(db.String(100))
+    phone = db.Column(db.String(20), nullable=True)
 
-# ===================== INIT DB =====================
+class Group(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(200))
+
+# ===================== INIT =====================
 with app.app_context():
     db.create_all()
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+# ===================== ADMIN PASSCODES =====================
+ADMIN_PASSCODE = "7101"
+SUPER_PASSCODE = "6479"
 
 # ===================== ROUTES =====================
 @app.route('/')
@@ -63,24 +73,16 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        
         if not username or not password:
-            flash("Будь ласка, заповніть усі поля", "error")
-            return render_template('register.html')
-        
-        if User.query.filter_by(username=username).first():
+            flash("Заповніть усі поля", "error")
+        elif User.query.filter_by(username=username).first():
             flash("Ім'я користувача вже зайняте", "error")
         else:
-            try:
-                user = User(username=username, password=generate_password_hash(password))
-                db.session.add(user)
-                db.session.commit()
-                flash("Реєстрація успішна! Тепер ви можете увійти.", "success")
-                return redirect(url_for('login'))
-            except Exception as e:
-                db.session.rollback()
-                flash("Помилка при реєстрації. Спробуйте ще раз.", "error")
-    
+            user = User(username=username, password=generate_password_hash(password))
+            db.session.add(user)
+            db.session.commit()
+            flash("Реєстрація успішна! Увійдіть.", "success")
+            return redirect(url_for('login'))
     return render_template('register.html')
 
 @app.route('/dashboard')
@@ -90,49 +92,71 @@ def dashboard():
     students_count = Student.query.count()
     return render_template('dashboard.html', lessons=lessons, students_count=students_count)
 
-@app.route('/lessons')
+# ===================== ADMIN PANEL =====================
+@app.route('/admin')
 @login_required
-def lessons():
-    lessons_list = Lesson.query.all()
-    return render_template('lessons.html', lessons=lessons_list)
+def admin():
+    if not session.get('admin_access'):
+        return redirect(url_for('admin_passcode'))
+    return render_template('admin.html')
 
-@app.route('/api/start_lesson/<int:lesson_id>', methods=['POST'])
+@app.route('/admin/passcode', methods=['GET', 'POST'])
+def admin_passcode():
+    if request.method == 'POST':
+        code = request.form.get('passcode')
+        if code == ADMIN_PASSCODE:
+            session['admin_access'] = True
+            flash("Доступ до адмін-панелі надано", "success")
+            return redirect(url_for('admin'))
+        else:
+            flash("Невірний код доступу", "error")
+    return render_template('admin_passcode.html')
+
+@app.route('/admin/super', methods=['GET', 'POST'])
+def admin_super():
+    if not session.get('admin_access'):
+        return redirect(url_for('admin_passcode'))
+    if request.method == 'POST':
+        code = request.form.get('supercode')
+        if code == SUPER_PASSCODE:
+            session['super_access'] = True
+            flash("Супер-доступ відкрито", "success")
+            return redirect(url_for('admin_super_panel'))
+        else:
+            flash("Невірний супер-код", "error")
+    return render_template('admin_super_passcode.html')
+
+@app.route('/admin/super/panel')
 @login_required
-def start_lesson(lesson_id):
-    lesson = Lesson.query.get(lesson_id)
-    if lesson:
-        lesson.status = 'started'
+def admin_super_panel():
+    if not session.get('super_access'):
+        return redirect(url_for('admin'))
+    users = User.query.all()
+    return render_template('admin_super_panel.html', users=users)
+
+# ===================== MANAGEMENT ROUTES =====================
+@app.route('/admin/add_lesson', methods=['POST'])
+@login_required
+def add_lesson():
+    if not session.get('admin_access'):
+        return jsonify({"success": False})
+    title = request.form.get('title')
+    group_name = request.form.get('group_name')
+    if title:
+        lesson = Lesson(title=title, group_name=group_name)
+        db.session.add(lesson)
         db.session.commit()
-        return jsonify({"success": True, "message": f"Урок '{lesson.title}' успішно розпочато!"})
-    return jsonify({"success": False, "message": "Урок не знайдено"})
+        flash("Урок успішно додано", "success")
+    return redirect(url_for('admin'))
 
-@app.route('/calendar')
-@login_required
-def calendar():
-    return render_template('calendar.html')
-
-@app.route('/students')
-@login_required
-def students():
-    students_list = Student.query.all()
-    return render_template('students.html', students=students_list)
-
-@app.route('/groups')
-@login_required
-def groups():
-    return render_template('groups.html')
-
-@app.route('/teachers')
-@login_required
-def teachers():
-    return render_template('teachers.html')
+# Similar routes for students and groups will be added next
 
 @app.route('/logout')
 @login_required
 def logout():
+    session.clear()
     logout_user()
     return redirect(url_for('login'))
 
-# ===================== RUN =====================
 if __name__ == '__main__':
     app.run(debug=True)

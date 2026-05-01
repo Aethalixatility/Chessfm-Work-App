@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-10">
+        <h1 class="text-4xl font-bold text-gray-800">Адмін-панель ChessFM</h1>
+        <a href="{{ url_for('admin_super') }}" 
+           class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-2xl font-medium">
+            ⚙️ Параметри доступу
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        
+        <!-- User Management -->
+        <div class="bg-white rounded-3xl shadow-xl p-8 hover:shadow-2xl transition">
+            <h2 class="text-2xl font-semibold mb-6 text-blue-700">👥 Управління користувачами</h2>
+            <div class="space-y-4">
+                <a href="{{ url_for('students') }}" 
+                   class="block p-5 bg-gray-50 hover:bg-blue-50 rounded-2xl transition text-lg">
+                    Учні
+                </a>
+                <a href="{{ url_for('teachers') }}" 
+                   class="block p-5 bg-gray-50 hover:bg-blue-50 rounded-2xl transition text-lg">
+                    Тренери
+                </a>
+            </div>
+        </div>
+
+        <!-- Groups -->
+        <div class="bg-white rounded-3xl shadow-xl p-8 hover:shadow-2xl transition">
+            <h2 class="text-2xl font-semibold mb-6 text-green-700">📚 Групи</h2>
+            <a href="{{ url_for('groups') }}" 
+               class="block p-5 bg-gray-50 hover:bg-green-50 rounded-2xl transition text-lg text-center py-12">
+                Перейти до управління групами
+            </a>
+        </div>
+
+        <!-- Lessons -->
+        <div class="bg-white rounded-3xl shadow-xl p-8 hover:shadow-2xl transition">
+            <h2 class="text-2xl font-semibold mb-6 text-orange-700">📅 Уроки</h2>
+            <form method="POST" action="{{ url_for('add_lesson') }}">
+                <input type="text" name="title" placeholder="Назва уроку" 
+                       class="w-full p-4 border rounded-2xl mb-3" required>
+                <input type="text" name="group_name" placeholder="Група (необов'язково)" 
+                       class="w-full p-4 border rounded-2xl mb-4">
+                <button type="submit"
+                        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-4 rounded-2xl font-semibold">
+                    + Додати урок
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <div class="mt-12 text-center">
+        <a href="{{ url_for('dashboard') }}" 
+           class="text-gray-500 hover:text-gray-700">← Повернутися на головний дашборд</a>
+    </div>
+</div>
+{% endblock %}
