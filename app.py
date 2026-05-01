@@ -13,7 +13,7 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# Models
+# ===================== MODELS =====================
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -26,7 +26,7 @@ class Lesson(db.Model):
     date = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='planned')
 
-# Init
+# ===================== INIT =====================
 with app.app_context():
     db.create_all()
 
@@ -34,7 +34,7 @@ with app.app_context():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Routes
+# ===================== ROUTES =====================
 @app.route('/')
 def home():
     return redirect(url_for('login'))
@@ -42,8 +42,10 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = User.query.filter_by(username=request.form.get('username')).first()
-        if user and check_password_hash(user.password, request.form.get('password')):
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for('dashboard'))
         flash('Невірний логін або пароль')
@@ -55,20 +57,46 @@ def register():
         username = request.form.get('username')
         password = request.form.get('password')
         if User.query.filter_by(username=username).first():
-            flash("Ім'я користувача вже зайняте")
+            flash("Це ім'я користувача вже зайняте. Оберіть інше.")
         else:
             user = User(username=username, password=generate_password_hash(password))
             db.session.add(user)
             db.session.commit()
-            flash("Реєстрація успішна!")
+            flash("Реєстрація успішна! Увійдіть у систему.")
             return redirect(url_for('login'))
     return render_template('register.html')
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    lessons = Lesson.query.limit(5).all()
+    lessons = Lesson.query.order_by(Lesson.date.desc()).limit(6).all()
     return render_template('dashboard.html', lessons=lessons)
+
+@app.route('/lessons')
+@login_required
+def lessons():
+    lessons = Lesson.query.all()
+    return render_template('lessons.html', lessons=lessons)
+
+@app.route('/calendar')
+@login_required
+def calendar():
+    return render_template('calendar.html')
+
+@app.route('/students')
+@login_required
+def students():
+    return render_template('students.html')
+
+@app.route('/groups')
+@login_required
+def groups():
+    return render_template('groups.html')
+
+@app.route('/teachers')
+@login_required
+def teachers():
+    return render_template('teachers.html')
 
 @app.route('/logout')
 @login_required
